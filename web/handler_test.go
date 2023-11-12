@@ -1,11 +1,9 @@
 package web
 
 import (
+	"github.com/alekseinovikov/todo/tests/todotest"
 	"github.com/labstack/echo/v4"
-	"github.com/stretchr/testify/assert"
 	"net/http"
-	"net/http/httptest"
-	"strings"
 	"testing"
 )
 
@@ -13,35 +11,27 @@ func TestGetAllBooks(t *testing.T) {
 	e := echo.New()
 
 	t.Run("no todo by id - should return 404", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/api/todo/1", nil)
-		rec := httptest.NewRecorder()
-		c := e.NewContext(req, rec)
-
-		h := &handler{}
-		_ = h.GetById(c)
-
-		assert.Equal(t, http.StatusNotFound, rec.Code)
-		assert.Empty(t, rec.Body.String())
+		todotest.NewTodoRequest(t, e, &handler{}).
+			SetId("1").
+			Run().
+			AssertStatus(http.StatusNotFound).
+			AssertBody("")
 	})
 
 	t.Run("post todo - should return 200 and response with id", func(t *testing.T) {
-		todoJson := buildTodoJson("")
-		req := httptest.NewRequest(http.MethodPost, "/api/todo", strings.NewReader(todoJson))
-		rec := httptest.NewRecorder()
-		c := e.NewContext(req, rec)
-
-		h := &handler{}
-		_ = h.Create(c)
-
-		assert.Equal(t, http.StatusOK, rec.Code)
-		assert.Equal(t, todoJson, buildTodoJson("1"))
+		todotest.NewTodoCreateRequest(t, e, &handler{}).
+			SetRequest(todotest.TodoCreateRequestBody{
+				Title:       "test",
+				Description: "test",
+				Status:      "test",
+			}).
+			Run().
+			AssertStatus(http.StatusOK).
+			AssertBody(todotest.TodoCreateResponseBody{
+				Id:          "1",
+				Title:       "test",
+				Description: "test",
+				Status:      "test",
+			})
 	})
-}
-
-func buildTodoJson(id string) string {
-	if id == "" {
-		return `{"title":"test","description":"test","status":"test"}`
-	}
-
-	return `{"id":"` + id + `","title":"test","description":"test","status":"test"}`
 }

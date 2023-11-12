@@ -15,4 +15,5 @@ func routing(e *echo.Echo) {
 	g := e.Group("/api/todo")
 
 	g.GET("/:id", h.GetById)
+	g.POST("", h.Create)
 }
