@@ -71,4 +71,54 @@ func TestGetAllBooks(t *testing.T) {
 				Status:      "test",
 			})
 	})
+
+	t.Run("delete not existing - 404", func(t *testing.T) {
+		todotest.NewTodoDelete(t, e, handler).
+			SetId("404").
+			Run().
+			AssertStatus(http.StatusNotFound).
+			AssertPayload("todo not found")
+	})
+
+	t.Run("delete existing - 200", func(t *testing.T) {
+		createdId := todotest.NewTodoCreateRequest(t, e, handler).
+			SetRequest(todotest.TodoCreateRequestBody{
+				Title:       "test",
+				Description: "test",
+				Status:      "test",
+			}).
+			Run().
+			AssertStatus(http.StatusOK).
+			GetId()
+
+		todotest.NewTodoDelete(t, e, handler).
+			SetId(createdId).
+			Run().
+			AssertStatus(http.StatusOK).
+			AssertPayload("OK")
+	})
+
+	t.Run("delete existing - 200 - 404 on get", func(t *testing.T) {
+		createdId := todotest.NewTodoCreateRequest(t, e, handler).
+			SetRequest(todotest.TodoCreateRequestBody{
+				Title:       "test",
+				Description: "test",
+				Status:      "test",
+			}).
+			Run().
+			AssertStatus(http.StatusOK).
+			GetId()
+
+		todotest.NewTodoDelete(t, e, handler).
+			SetId(createdId).
+			Run().
+			AssertStatus(http.StatusOK).
+			AssertPayload("OK")
+
+		todotest.NewTodoRequest(t, e, handler).
+			SetId(createdId).
+			Run().
+			AssertStatus(http.StatusNotFound).
+			AssertPayload("todo not found")
+	})
 }

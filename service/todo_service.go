@@ -8,6 +8,7 @@ import (
 type TodoRepository interface {
 	GetById(id string) (error, domain.Todo)
 	Create(todo domain.Todo) (error, domain.Todo)
+	Delete(id string) error
 }
 
 type TodoService struct {
@@ -30,4 +31,13 @@ func (t TodoService) Create(todo domain.Todo) (error, domain.Todo) {
 
 	todo.Id = newUUID.String()
 	return t.repository.Create(todo)
+}
+
+func (t TodoService) Delete(id string) error {
+	err, _ := t.repository.GetById(id)
+	if err != nil {
+		return err
+	}
+
+	return t.repository.Delete(id)
 }

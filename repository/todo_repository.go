@@ -25,3 +25,8 @@ func (t TodoRepository) Create(todo domain.Todo) (error, domain.Todo) {
 	t.storage[todo.Id] = todo
 	return nil, todo
 }
+
+func (t TodoRepository) Delete(id string) error {
+	delete(t.storage, id)
+	return nil
+}

@@ -9,6 +9,7 @@ import (
 type todoService interface {
 	GetById(id string) (error, domain.Todo)
 	Create(todo domain.Todo) (error, domain.Todo)
+	Delete(id string) error
 }
 
 type TodoHandler struct {
@@ -45,4 +46,18 @@ func (h *TodoHandler) Create(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, todo)
+}
+
+func (h *TodoHandler) Delete(c echo.Context) error {
+	id := c.Param("id")
+	err := h.service.Delete(id)
+	if err != nil {
+		if err == domain.ErrTodoNotFound {
+			return c.String(http.StatusNotFound, err.Error())
+		}
+
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.String(http.StatusOK, "OK")
 }
