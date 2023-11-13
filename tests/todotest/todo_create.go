@@ -57,9 +57,22 @@ func (r *TodoCreateRequest) AssertStatus(status int) *TodoCreateRequest {
 	return r
 }
 
-func (r *TodoCreateRequest) AssertBody(body TodoCreateResponseBody) *TodoCreateRequest {
-	var actualBody TodoCreateResponseBody
+func (r *TodoCreateRequest) AssertBody(body TodoCreateRequestBody) *TodoCreateRequest {
+	var actualBody TodoCreateRequestBody
 	_ = json.Unmarshal(r.recorder.Body.Bytes(), &actualBody)
 	assert.Equal(r.t, body, actualBody)
 	return r
+}
+
+func (r *TodoCreateRequest) AssertIdIsNotEmpty() *TodoCreateRequest {
+	var actualBody TodoCreateResponseBody
+	_ = json.Unmarshal(r.recorder.Body.Bytes(), &actualBody)
+	assert.NotEmpty(r.t, actualBody.Id)
+	return r
+}
+
+func (r *TodoCreateRequest) GetId() string {
+	var actualBody TodoCreateResponseBody
+	_ = json.Unmarshal(r.recorder.Body.Bytes(), &actualBody)
+	return actualBody.Id
 }

@@ -1,6 +1,7 @@
 package todotest
 
 import (
+	"encoding/json"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -10,6 +11,13 @@ import (
 
 type todoById interface {
 	GetById(c echo.Context) error
+}
+
+type TodoResponseBody struct {
+	Id          string `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Status      string `json:"status"`
 }
 
 type TodoRequest struct {
@@ -31,8 +39,12 @@ func (r *TodoRequest) SetId(id string) *TodoRequest {
 }
 
 func (r *TodoRequest) Run() *TodoRequest {
-	req := httptest.NewRequest(http.MethodGet, "/api/todo/"+r.id, nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/todo", nil)
 	c := r.echo.NewContext(req, r.recorder)
+	c.SetPath("/:id")
+	c.SetParamNames("id")
+	c.SetParamValues(r.id)
+
 	_ = r.getter.GetById(c)
 	return r
 }
@@ -42,7 +54,14 @@ func (r *TodoRequest) AssertStatus(status int) *TodoRequest {
 	return r
 }
 
-func (r *TodoRequest) AssertBody(body string) *TodoRequest {
+func (r *TodoRequest) AssertPayload(body string) *TodoRequest {
 	assert.Equal(r.t, body, r.recorder.Body.String())
+	return r
+}
+
+func (r *TodoRequest) AssertBody(body TodoResponseBody) *TodoRequest {
+	var actualBody TodoResponseBody
+	_ = json.Unmarshal(r.recorder.Body.Bytes(), &actualBody)
+	assert.Equal(r.t, body, actualBody)
 	return r
 }

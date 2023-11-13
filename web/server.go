@@ -1,9 +1,17 @@
 package web
 
-import "github.com/labstack/echo/v4"
+import (
+	"github.com/alekseinovikov/todo/repository"
+	"github.com/alekseinovikov/todo/service"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+)
 
 func Run() {
 	e := echo.New()
+
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
 
 	routing(e)
 
@@ -11,9 +19,10 @@ func Run() {
 }
 
 func routing(e *echo.Echo) {
-	h := &handler{}
-	g := e.Group("/api/todo")
+	todoRepository := repository.NewTodoRepository()
+	todoService := service.NewTodoService(todoRepository)
+	h := NewTodoWebHandler(todoService)
 
-	g.GET("/:id", h.GetById)
-	g.POST("", h.Create)
+	e.POST("/api/todo", h.Create)
+	e.GET("/api/todo/:id", h.GetById)
 }
